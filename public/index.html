@@ -1,0 +1,289 @@
+<!doctype html>
+<html lang="ja" data-theme="dark">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>習慣トラッカー</title>
+    <style>
+      :root {
+        color-scheme: dark light;
+        /* Dark (default) */
+        --bg: #0f172a;           /* slate-900 */
+        --panel: #111827;        /* gray-900 */
+        --panel-2: #0b1220;      /* darker */
+        --text: #e5e7eb;         /* gray-200 */
+        --muted: #9ca3af;        /* gray-400 */
+        --primary: #60a5fa;      /* blue-400 */
+        --accent: #34d399;       /* emerald-400 */
+        --danger: #f87171;       /* red-400 */
+        --border: #1f2937;       /* gray-800 */
+        --card-bg: rgba(17, 24, 39, 0.7);
+        --item-bg: rgba(2, 6, 23, 0.5);
+        --btn-bg: rgba(2, 6, 23, 0.6);
+        --btn-fg: var(--text);
+        /* Unified section title colors (dark) */
+        --section-start: #8b5cf6; /* violet-500 */
+        --section-end:   #6366f1; /* indigo-500 */
+        --section-fg:    #ffffff; /* on gradient */
+      }
+      html[data-theme="dark"] { color-scheme: dark; }
+      html[data-theme="light"] {
+        color-scheme: light;
+        --bg: #f8fafc;          /* slate-50 */
+        --panel: #ffffff;        
+        --panel-2: #f1f5f9;      /* slate-100 */
+        --text: #0f172a;         /* slate-900 */
+        --muted: #475569;        /* slate-600 */
+        --primary: #2563eb;      /* blue-600 */
+        --accent: #10b981;       /* emerald-500 */
+        --danger: #ef4444;       /* red-500 */
+        --border: #e2e8f0;       /* slate-200 */
+        --card-bg: #ffffff;
+        --item-bg: #f8fafc;
+        --btn-bg: #ffffff;
+        --btn-fg: #0f172a;
+        /* Unified section title colors (light) */
+        --section-start: #ddd6fe; /* violet-200 */
+        --section-end:   #93c5fd; /* blue-300 */
+        --section-fg:    #1f2937; /* slate-800 */
+      }
+      html, body { height: 100%; }
+      body {
+        margin: 0;
+        font-family: ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial, "Apple Color Emoji", "Segoe UI Emoji";
+        background: linear-gradient(180deg, var(--bg), var(--panel-2));
+        color: var(--text);
+      }
+      .container {
+        max-width: 1100px;
+        margin: 0 auto;
+        padding: 24px;
+      }
+      header .header-row {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 12px;
+      }
+      header h1 {
+        margin: 0 0 16px;
+        font-size: 28px;
+        letter-spacing: 0.02em;
+      }
+      header p { color: var(--muted); margin: 0 0 24px; }
+      .btn {
+        appearance: none;
+        border: 1px solid var(--border);
+        background: var(--btn-bg);
+        color: var(--btn-fg);
+        padding: 8px 14px;
+        border-radius: 10px;
+        font-size: 14px;
+        cursor: pointer;
+        transition: transform 120ms ease, background-color 120ms ease, border-color 120ms ease;
+      }
+      .btn:hover { transform: translateY(-1px); border-color: var(--primary); }
+      .btn:active { transform: translateY(0); }
+      .btn-reset { background: linear-gradient(90deg, var(--danger), #ef4444); color: #0b1220; font-weight: 700; }
+      .btn-reset:hover { filter: brightness(1.05); }
+      .section {
+        margin: 28px 0 40px;
+      }
+      .section-title {
+        margin: 0 0 16px;
+        padding: 10px 14px;
+        font-size: 18px;
+        font-weight: 700;
+        border-radius: 10px;
+        border: 1px solid var(--border);
+        background: linear-gradient(90deg, var(--section-start), var(--section-end));
+        color: var(--section-fg);
+      }
+      .grid {
+        display: grid;
+        grid-template-columns: 1fr;
+        gap: 16px;
+      }
+      @media (min-width: 960px) {
+        .grid { grid-template-columns: repeat(3, 1fr); }
+      }
+      .card {
+        background: var(--card-bg);
+        border: 1px solid var(--border);
+        border-radius: 12px;
+        padding: 14px 14px 10px;
+        backdrop-filter: blur(6px);
+      }
+      .card h3 {
+        margin: 0 0 10px;
+        font-size: 16px;
+        letter-spacing: 0.02em;
+        color: var(--primary);
+      }
+      .habit-list {
+        list-style: none;
+        margin: 0;
+        padding: 0;
+        display: grid;
+        gap: 8px;
+      }
+      .habit-list li {
+        padding: 8px 10px;
+        border: 1px solid var(--border);
+        border-radius: 10px;
+        background: var(--item-bg);
+      }
+      .habit-list label {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        cursor: pointer;
+      }
+      .habit-list input[type="checkbox"] {
+        width: 18px; height: 18px;
+        accent-color: var(--accent);
+      }
+      footer { color: var(--muted); font-size: 12px; margin-top: 28px; }
+    </style>
+  </head>
+  <body>
+    <div class="container">
+      <header>
+        <div class="header-row">
+          <h1>習慣トラッカー</h1>
+          <div>
+            <button id="themeToggle" class="btn" type="button" aria-label="ライト/ダークを切り替え">🌙/☀️</button>
+            <button id="resetButton" class="btn btn-reset" type="button" aria-label="チェックをすべて外す">リセット</button>
+          </div>
+        </div>
+      </header>
+
+      <section class="section" aria-labelledby="routine-title">
+        <h2 id="routine-title" class="section-title">Routine</h2>
+        <div class="grid">
+          <article class="card">
+            <h3>English</h3>
+            <ul class="habit-list">
+              <li><label><input type="checkbox" />X（News - Solana）</label></li>
+              <li><label><input type="checkbox" />SubStack</label></li>
+              <li><label><input type="checkbox" />ChatGPT（英語学習）</label></li>
+              <li><label><input type="checkbox" />ポッドキャスト</label></li>
+              <li><label><input type="checkbox" />スタディサプリ</label></li>
+              <li><label><input type="checkbox" />ネイティブキャンプ</label></li>
+            </ul>
+          </article>
+
+          <article class="card">
+            <h3>AI</h3>
+            <ul class="habit-list">
+              <li><label><input type="checkbox" />X（AI）</label></li>
+              <li><label><input type="checkbox" />最新ツール実践</label></li>
+            </ul>
+          </article>
+
+          <article class="card">
+            <h3>Research</h3>
+            <ul class="habit-list">
+              <li><label><input type="checkbox" />X（情報収集）</label></li>
+              <li><label><input type="checkbox" />NewsPicks</label></li>
+              <li><label><input type="checkbox" />Discord（Superteam）</label></li>
+            </ul>
+          </article>
+        </div>
+      </section>
+
+      <section class="section" aria-labelledby="optional-title">
+        <h2 id="optional-title" class="section-title">Optional</h2>
+        <div class="grid">
+          <article class="card">
+            <h3>English</h3>
+            <ul class="habit-list">
+              <li><label><input type="checkbox" />Netflix</label></li>
+              <li><label><input type="checkbox" />YouTube</label></li>
+            </ul>
+          </article>
+
+          <article class="card">
+            <h3>AI</h3>
+            <ul class="habit-list">
+              <li><label><input type="checkbox" />Tool開発</label></li>
+            </ul>
+          </article>
+
+          <article class="card">
+            <h3>Research</h3>
+            <ul class="habit-list">
+              <li><label><input type="checkbox" />Deep Research（Xブックマーク）</label></li>
+              <li><label><input type="checkbox" />Deep Research（リマインダー）</label></li>
+              <li><label><input type="checkbox" />Dラボ</label></li>
+            </ul>
+          </article>
+        </div>
+      </section>
+
+      
+    </div>
+    <script>
+      (function () {
+        const root = document.documentElement;
+        const THEME_KEY = 'theme';
+
+        function applyTheme(theme) {
+          root.setAttribute('data-theme', theme);
+          try { localStorage.setItem(THEME_KEY, theme); } catch (_) {}
+          updateThemeToggleUI();
+        }
+
+        function getInitialTheme() {
+          try {
+            const saved = localStorage.getItem(THEME_KEY);
+            if (saved === 'light' || saved === 'dark') return saved;
+          } catch (_) {}
+          return window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
+        }
+
+        const themeBtn = document.getElementById('themeToggle');
+        function updateThemeToggleUI() {
+          if (!themeBtn) return;
+          const cur = root.getAttribute('data-theme') || 'dark';
+          if (cur === 'dark') {
+            themeBtn.textContent = '☀️ ライト';
+            themeBtn.setAttribute('aria-pressed', 'false');
+            themeBtn.title = 'ライトモードに切り替え';
+          } else {
+            themeBtn.textContent = '🌙 ダーク';
+            themeBtn.setAttribute('aria-pressed', 'true');
+            themeBtn.title = 'ダークモードに切り替え';
+          }
+        }
+        if (themeBtn) {
+          themeBtn.addEventListener('click', () => {
+            const next = (root.getAttribute('data-theme') === 'dark') ? 'light' : 'dark';
+            applyTheme(next);
+          });
+        }
+        // Initialize theme
+        applyTheme(getInitialTheme());
+
+        // Reset button behavior
+        const resetBtn = document.getElementById('resetButton');
+        if (resetBtn) {
+          resetBtn.addEventListener('click', () => {
+            const ok = confirm('すべてのチェックを外します。よろしいですか？');
+            if (!ok) return;
+            const boxes = document.querySelectorAll('input[type="checkbox"]');
+            boxes.forEach(cb => {
+              cb.checked = false;
+              cb.dispatchEvent(new Event('change'));
+            });
+            try {
+              Object.keys(localStorage)
+                .filter(k => k.startsWith('habit:'))
+                .forEach(k => localStorage.removeItem(k));
+            } catch (_) { /* ignore */ }
+          });
+        }
+      })();
+    </script>
+  </body>
+  </html>
