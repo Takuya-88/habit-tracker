@@ -71,6 +71,7 @@
         letter-spacing: 0.02em;
       }
       header p { color: var(--muted); margin: 0 0 24px; }
+      .tools { display: inline-flex; gap: 8px; align-items: center; }
       .btn {
         appearance: none;
         border: 1px solid var(--border);
@@ -151,8 +152,9 @@
       <header>
         <div class="header-row">
           <h1>習慣トラッカー</h1>
-          <div>
+          <div class="tools">
             <button id="themeToggle" class="btn" type="button" aria-label="ライト/ダークを切り替え">🌙/☀️</button>
+            <button id="syncButton" class="btn" type="button" aria-label="同期コードの設定と同期">同期</button>
             <button id="resetButton" class="btn btn-reset" type="button" aria-label="チェックをすべて外す">リセット</button>
           </div>
         </div>
@@ -164,29 +166,29 @@
           <article class="card">
             <h3>English</h3>
             <ul class="habit-list">
-              <li><label><input type="checkbox" />X（News - Solana）</label></li>
-              <li><label><input type="checkbox" />SubStack</label></li>
-              <li><label><input type="checkbox" />ChatGPT（英語学習）</label></li>
-              <li><label><input type="checkbox" />ポッドキャスト</label></li>
-              <li><label><input type="checkbox" />スタディサプリ</label></li>
-              <li><label><input type="checkbox" />ネイティブキャンプ</label></li>
+              <li><label><input type="checkbox" data-habit-key="routine.english.news_solana" />X（News - Solana）</label></li>
+              <li><label><input type="checkbox" data-habit-key="routine.english.substack" />SubStack</label></li>
+              <li><label><input type="checkbox" data-habit-key="routine.english.chatgpt_en" />ChatGPT（英語学習）</label></li>
+              <li><label><input type="checkbox" data-habit-key="routine.english.podcast" />ポッドキャスト</label></li>
+              <li><label><input type="checkbox" data-habit-key="routine.english.studysapuri" />スタディサプリ</label></li>
+              <li><label><input type="checkbox" data-habit-key="routine.english.nativecamp" />ネイティブキャンプ</label></li>
             </ul>
           </article>
 
           <article class="card">
             <h3>AI</h3>
             <ul class="habit-list">
-              <li><label><input type="checkbox" />X（AI）</label></li>
-              <li><label><input type="checkbox" />最新ツール実践</label></li>
+              <li><label><input type="checkbox" data-habit-key="routine.ai.x_ai" />X（AI）</label></li>
+              <li><label><input type="checkbox" data-habit-key="routine.ai.tools_practice" />最新ツール実践</label></li>
             </ul>
           </article>
 
           <article class="card">
             <h3>Research</h3>
             <ul class="habit-list">
-              <li><label><input type="checkbox" />X（情報収集）</label></li>
-              <li><label><input type="checkbox" />NewsPicks</label></li>
-              <li><label><input type="checkbox" />Discord（Superteam）</label></li>
+              <li><label><input type="checkbox" data-habit-key="routine.research.x_info" />X（情報収集）</label></li>
+              <li><label><input type="checkbox" data-habit-key="routine.research.newspicks" />NewsPicks</label></li>
+              <li><label><input type="checkbox" data-habit-key="routine.research.discord_superteam" />Discord（Superteam）</label></li>
             </ul>
           </article>
         </div>
@@ -198,24 +200,24 @@
           <article class="card">
             <h3>English</h3>
             <ul class="habit-list">
-              <li><label><input type="checkbox" />Netflix</label></li>
-              <li><label><input type="checkbox" />YouTube</label></li>
+              <li><label><input type="checkbox" data-habit-key="optional.english.netflix" />Netflix</label></li>
+              <li><label><input type="checkbox" data-habit-key="optional.english.youtube" />YouTube</label></li>
             </ul>
           </article>
 
           <article class="card">
             <h3>AI</h3>
             <ul class="habit-list">
-              <li><label><input type="checkbox" />Tool開発</label></li>
+              <li><label><input type="checkbox" data-habit-key="optional.ai.tool_dev" />Tool開発</label></li>
             </ul>
           </article>
 
           <article class="card">
             <h3>Research</h3>
             <ul class="habit-list">
-              <li><label><input type="checkbox" />Deep Research（Xブックマーク）</label></li>
-              <li><label><input type="checkbox" />Deep Research（リマインダー）</label></li>
-              <li><label><input type="checkbox" />Dラボ</label></li>
+              <li><label><input type="checkbox" data-habit-key="optional.research.deep_x_bookmarks" />Deep Research（Xブックマーク）</label></li>
+              <li><label><input type="checkbox" data-habit-key="optional.research.deep_reminder" />Deep Research（リマインダー）</label></li>
+              <li><label><input type="checkbox" data-habit-key="optional.research.dlab" />Dラボ</label></li>
             </ul>
           </article>
         </div>
@@ -223,10 +225,16 @@
 
       
     </div>
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.45.4/dist/umd/supabase.js" integrity="sha384-s+poV0irwGszmQX3h0xax1cNQzQq2gnpDT6q6G41zwhKKhwhGx0xshVnlYx81OLW" crossorigin="anonymous"></script>
+    <script src="./config.js"></script>
     <script>
       (function () {
         const root = document.documentElement;
         const THEME_KEY = 'theme';
+        const SYNC_ID_KEY = 'sync:id';
+        const TODAY = new Date();
+        const DATE_KEY = new Date(TODAY.getFullYear(), TODAY.getMonth(), TODAY.getDate()).toISOString().slice(0,10); // YYYY-MM-DD
+        const LOCAL_STATE_KEY = `habit:state:${DATE_KEY}`;
 
         function applyTheme(theme) {
           root.setAttribute('data-theme', theme);
@@ -281,7 +289,138 @@
                 .filter(k => k.startsWith('habit:'))
                 .forEach(k => localStorage.removeItem(k));
             } catch (_) { /* ignore */ }
+            // Also push cleared state to cloud if configured
+            saveState();
           });
+        }
+
+        // ---------- Habit state (local + optional cloud) ----------
+        const boxes = Array.from(document.querySelectorAll('input[type="checkbox"][data-habit-key]'));
+        boxes.forEach(cb => cb.addEventListener('change', () => saveStateDebounced()));
+
+        function getLocalState() {
+          try {
+            const raw = localStorage.getItem(LOCAL_STATE_KEY);
+            return raw ? JSON.parse(raw) : {};
+          } catch (_) { return {}; }
+        }
+        function setLocalState(state) {
+          try { localStorage.setItem(LOCAL_STATE_KEY, JSON.stringify(state)); } catch (_) {}
+        }
+        function applyState(state) {
+          boxes.forEach(cb => {
+            const key = cb.dataset.habitKey;
+            if (Object.prototype.hasOwnProperty.call(state, key)) {
+              cb.checked = !!state[key];
+            }
+          });
+        }
+        function gatherState() {
+          const state = {};
+          boxes.forEach(cb => { state[cb.dataset.habitKey] = !!cb.checked; });
+          return state;
+        }
+
+        // Cloud (Supabase) setup
+        const cfg = (window.HABITS_CONFIG || {});
+        let sb = null;
+        if (cfg.supabaseUrl && cfg.supabaseAnonKey && window.supabase) {
+          try { sb = window.supabase.createClient(cfg.supabaseUrl, cfg.supabaseAnonKey); } catch (_) {}
+        }
+
+        function getSyncId() {
+          try { return localStorage.getItem(SYNC_ID_KEY) || ''; } catch (_) { return ''; }
+        }
+        function setSyncId(id) {
+          try { localStorage.setItem(SYNC_ID_KEY, id); } catch (_) {}
+        }
+
+        async function loadRemote() {
+          if (!sb) return null;
+          const uid = getSyncId();
+          if (!uid) return null;
+          try {
+            const { data, error } = await sb
+              .from('habit_states')
+              .select('data')
+              .eq('user_id', uid)
+              .eq('date', DATE_KEY)
+              .maybeSingle();
+            if (error) return null;
+            return data ? (data.data || null) : null;
+          } catch (_) { return null; }
+        }
+
+        async function saveRemote(state) {
+          if (!sb) return;
+          const uid = getSyncId();
+          if (!uid) return;
+          try {
+            await sb.from('habit_states').upsert({
+              user_id: uid,
+              date: DATE_KEY,
+              data: state,
+              updated_at: new Date().toISOString()
+            }, { onConflict: 'user_id,date' });
+          } catch (_) { /* ignore */ }
+        }
+
+        function saveState() {
+          const state = gatherState();
+          setLocalState(state);
+          saveRemote(state);
+        }
+        const saveStateDebounced = debounce(saveState, 400);
+
+        function debounce(fn, ms) {
+          let t; return function() { clearTimeout(t); t = setTimeout(fn, ms); };
+        }
+
+        // Initial load: local -> remote override if exists
+        applyState(getLocalState());
+        (async () => {
+          const remote = await loadRemote();
+          if (remote && Object.keys(remote).length) {
+            applyState(remote);
+            setLocalState(remote);
+          }
+        })();
+
+        // Sync setup button
+        const syncBtn = document.getElementById('syncButton');
+        if (syncBtn) {
+          syncBtn.addEventListener('click', async () => {
+            if (!sb) {
+              alert('クラウド同期は未設定です。public/config.js に Supabase の URL と anon key を設定してください。');
+              return;
+            }
+            const current = getSyncId();
+            const input = prompt('同期コードを入力（空欄なら自動生成）', current || '');
+            if (input === null) return; // cancel
+            let next = input.trim();
+            if (!next) next = generateCode();
+            setSyncId(next);
+            const remote = await loadRemote();
+            if (remote && Object.keys(remote).length) {
+              applyState(remote);
+              setLocalState(remote);
+              alert('同期コードを設定しました。リモートのデータを反映しました。');
+            } else {
+              // push local to remote
+              await saveRemote(getLocalState());
+              alert('同期コードを設定しました。現在のローカル状態をクラウドへ保存しました。');
+            }
+          });
+        }
+
+        function generateCode() {
+          try {
+            const arr = new Uint32Array(4);
+            crypto.getRandomValues(arr);
+            return Array.from(arr, n => n.toString(36).slice(-3)).join('');
+          } catch (_) {
+            return Math.random().toString(36).slice(2, 14);
+          }
         }
       })();
     </script>
