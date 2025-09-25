@@ -325,7 +325,11 @@
         const cfg = (window.HABITS_CONFIG || {});
         let sb = null;
         if (cfg.supabaseUrl && cfg.supabaseAnonKey && window.supabase) {
-          try { sb = window.supabase.createClient(cfg.supabaseUrl, cfg.supabaseAnonKey); } catch (_) {}
+          try {
+            sb = window.supabase.createClient(cfg.supabaseUrl, cfg.supabaseAnonKey, {
+              global: { headers: { 'x-habit-id': getSyncId() || '' } }
+            });
+          } catch (_) {}
         }
 
         function getSyncId() {
@@ -333,6 +337,13 @@
         }
         function setSyncId(id) {
           try { localStorage.setItem(SYNC_ID_KEY, id); } catch (_) {}
+          if (cfg.supabaseUrl && cfg.supabaseAnonKey && window.supabase) {
+            try {
+              sb = window.supabase.createClient(cfg.supabaseUrl, cfg.supabaseAnonKey, {
+                global: { headers: { 'x-habit-id': id || '' } }
+              });
+            } catch (_) {}
+          }
         }
 
         async function loadRemote() {
