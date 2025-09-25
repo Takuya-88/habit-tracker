@@ -4,6 +4,6 @@
 
 window.HABITS_CONFIG = {
   supabaseUrl: "", // e.g., https://xxxx.supabase.co
-  supabaseAnonKey: "" // e.g., eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...
+  supabaseAnonKey: "", // e.g., eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...
+  workspaceId: "" // e.g., takuya-default (端末間で共有される固定ID)
 };
-
